@@ -8,31 +8,31 @@ global O
 global uavNumber;
 global uavSetupTime;
 global uavFlightTime;
-O = 1; % Operadores
-uavNumber = 2;
-uavSetupTime = 4;  % média de 8.2 minutos de setup
-uavFlightTime = 30;
+O = 1; % O - Operators
+uavNumber = 2; % M - Total Number
+uavSetupTime = 4;  % ts - average of 8.2 minutes of setup
+uavFlightTime = 30; % Lk - Battery Duration
 
-uavSpeed = 45;
+uavSpeed = 45; % Vij - Flight Speed Const
 %flightAltitude = 240;
 %flightAltitude = 210;
-flightAltitude = 180;
+flightAltitude = 180; % H - Flighting Height
 
-% Heurística 0: Não
-%            1: Sim
+% Heuristic 0: No but iteration
+%           1: Yes and no iteration
 h = 0;
 
 % Camera specs
 horizontalResolution = 4608;
 verticalResolution = 3456;
 
-% FOV típico de 35 mm
+% Typical 35 mm FOV
 % 18mm h: 100 v: 66;
 % 28mm h: 74 v: 49;
 % 35mm h: 62 v: 41;
 hfieldOfView = 74;
 vfieldOfView = 49;
-sidelap = .5;                   % image overlap
+sidelap = .5; % s - image overlap
 
 %% Parameters
 imageWidth = flightAltitude*2*tan(pi*(hfieldOfView/2)/180);
@@ -40,15 +40,15 @@ imageLength = flightAltitude*2*tan(pi*(vfieldOfView/2)/180);
 
 %% Program
 plotMap;
-% Selecione os pontos limítrofes da área a ser investigada. A base é o 
-% primeiro ponto escolhido e os outros pontos (mínimo de três, no total)
-%serão utilizados para definir a fronteira.
+% Select the boundary points of the area to be investigated. 
+% The base is the first chosen point and the other points 
+% (minimum of three in total) will be used to define the boundary.
 [x,y] = ginput;
-% Exemplos:
+% Examples:
 %x = [500 500 1000 1000]'; y = [-250 250 -250 250]';
-%x = [490 490 1510 1510]'; y = [500 -500 -500 500]';    % artigo
-%x = [490 490 1510]'; y = [500 -500 500]';              % artigo
-%x = [490 400 490 1000 1510 1400 1510 1000]'; y = [500 0 -500 -535 -500 0 500 575]'; %artigo
+%x = [490 490 1510 1510]'; y = [500 -500 -500 500]';    % article
+%x = [490 490 1510]'; y = [500 -500 500]';              % article
+%x = [490 400 490 1000 1510 1400 1510 1000]'; y = [500 0 -500 -535 -500 0 500 575]'; %article
 %x = [-2000 -2000 2000]'; y = [-500 -1000 -500]';
 %x = 1.0e+03 * [0.370 0.251 2]';y = [-278 217 -200]';
 %x = 1.0e+03 * [0.370 0.132 2]';y = [-278 722 -200]';
@@ -71,7 +71,7 @@ end
 if m > 1 && h == 0
     while m > 1
         [ans,uavMaxTimeIndex] = max(v);
-        uav(uavMaxTimeIndex) = 0;
+        uav(uavMaxTimeIndex) = 0; % remove the UAV with longest path
         for i = 1: length(v)
             if v(i) == 0
                 uav(i) = 0;
@@ -79,14 +79,15 @@ if m > 1 && h == 0
         end
         
         waypoints{uavMaxTimeIndex} = findWaypoints(X(:,:,uavMaxTimeIndex),V);
-        
+        beep
+        % Focus on Node, so select any Node has been visited by ijmax
         [visitedWaypoints,order] = max(X(:,:,uavMaxTimeIndex),[],1);
         j = 1; newV = [];
         for i = 1:length(V)
-            if i == 1
+            if i == 1 % Base/Depot
                 newV(j,:) = [0 0];
                 j = j + 1;
-            elseif visitedWaypoints(i) == 0
+            elseif visitedWaypoints(i) == 0 % Not visited by uavMax
                 newV(j,:) = V(i,:);
                 j = j + 1;
             end
@@ -109,8 +110,9 @@ else
         waypoints{i} = findWaypoints(X(:,:,i),V);
     end
 end
-[t t_voo] = time(waypoints,uavSpeed,uavSetupTime,O)
+
 laneDist
+[t, t_fly] = time(waypoints,uavSpeed,uavSetupTime,O)
 
 plotUavPath(waypoints);
 %distance

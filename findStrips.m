@@ -64,7 +64,7 @@ end
 lmin = (R'*lanemin')';
 lmax = (R'*lanemax')';
 
-% construção dos vértices
+% construction of the vertices
 V = zeros(numberOfLanes*2+1,2);
 for i = 1:numberOfLanes*2+1
     if i == 1

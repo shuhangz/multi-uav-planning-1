@@ -1,36 +1,49 @@
 function [X,v,m] = lip3(V,uav,uavSpeed,uavSetupTime,uavFlightTime,h,O)
+% X - Xij indicator
+% v - minimized cost (Optimization Objective)
+% m - UAV number be used
 
-% construção da matriz de custos
-C = zeros(length(V));
+% V - Vertices
+% uav - uav Number
+% h - Heuristic
+% O - Operators
+
+% construction of the cost matrix
+C = zeros(length(V)); % C - Cost Matrix
 numberOfVertices = length(V);
 uavNumber = length(uav);
 
+% Here is different from paper, Cij here is the Cij/Vij in Eq
 for i = 1:numberOfVertices
     for j = 1:numberOfVertices
         if i ~= j
-            C(i,j) = norm(V(i,:)-V(j,:))/(uavSpeed*1000/60);
+            C(i,j) = norm(V(i,:)-V(j,:))/(uavSpeed*1000/60); % Dist_ij/(m/s)
         end
     end
 end
 
 %% Linear Integer Programming
-v = sdpvar(1,1);
-X = binvar(numberOfVertices,numberOfVertices,uavNumber,'full');
+v = sdpvar(1,1); % symbolic decision variable 1x1 Mat
+X = binvar(numberOfVertices,numberOfVertices,uavNumber,'full'); % i*j*k {0,1}
 u = sdpvar(numberOfVertices,1);
 m = intvar(1,1);
 for k = 1:uavNumber
+    % Xiik is always 0
     for i = 1:numberOfVertices
         X(i,i,k) = 0;
     end
+    % No more UAV
     if uav(k) == 0
         X(:,:,k) = zeros(numberOfVertices);
     end
 end
 
+
+%% Restrictions
+
 constraints = [];
 
-%% Retrições
-% Restrição #1 - Custo total de operação
+% Constraint #1 - Total Cost of Operation
 for k = 1:uavNumber
     sum1 = 0;
     for i = 1:numberOfVertices
@@ -40,24 +53,29 @@ for k = 1:uavNumber
             end
         end
     end
+    % Eq(6) sum(C/V*X)+dk<=v
     constraints = [constraints, v >= sum1 + sum(X(1,:,k))*ceil(k/O)*uavSetupTime];
-    % Restrição 9 - Autonomia de Voo
+    % Restriction 9 - Flight Autonomy
+    % Eq(8) sum(C/V*X)<=Lk
     constraints = [constraints, sum1 <= uavFlightTime];
 end
 
-% Restrição 2 - Cada vértice deve ser visitado uma vez e por um vant
+% Restrict 2 - Each vertex must be visited once and by a vant
+% Eq(9) sum(xijk)=1
 for j = 2:numberOfVertices
     constraints = [constraints, sum(sum(X(:,j,:))) == 1];
 end
 
-% Restrição 3 - Ao visitar um vértice, o vant deve sair daquele vértice
+% Restriction 3 - When visiting a vertex, the vant must leave that vertex
+% Eq(10) sum(xipk)-sum(xpjk)=0
 for k = 1:uavNumber
     for p = 1:numberOfVertices
         constraints = [constraints, sum(X(:,p,k)) - sum(X(p,:,k)) == 0];
     end
 end
 
-% Restrição 4 e 5 - Número de vants utilizado
+% Restriction 4 and 5 - Number of vans used
+% Eq(15)(16) sum(1jk)=m<=M
 constraints = [constraints, sum(sum(X(1,:,:))) == m];
 % if sum(uav) < length(uav)
 %     constraints = [constraints, m == sum(uav)];
@@ -66,12 +84,12 @@ constraints = [constraints, sum(sum(X(1,:,:))) == m];
 % end
 constraints = [constraints, m <= sum(uav)];
 
-% Restrição 6 - ???
+% Restriction 6 - ???
 % for k = 1:uavNumber
 %     constraints = [constraints, sum(X(1,2:numberOfVertices,k)) == 1];
 % end
 
-% Restrição 7 - Ciclo
+% Restriction 7 - Cycle
 for i = 2:numberOfVertices
     for j = 2:numberOfVertices
         if i ~= j
@@ -80,23 +98,26 @@ for i = 2:numberOfVertices
     end
 end
 
-% Restrição 8 - Aquela que obriga que cada linha seja percorrida por apenas
-% um VANT e em apenas um sentido.
+% Restriction 8 - The one that requires each line to be covered
+% by only one UAV and in only one direction
+% Eq(12) sum(Xii+1)+sum(Xi+1i)=1
 for i = 2:2:numberOfVertices
    constraints = [constraints, 1 == sum(X(i,i+1,:)) + sum(X(i+1,i,:))];
 end
 
-% Restrição 10 - Evita diagonais
+% Restriction 10 - Avoid diagonals
+% Eq(13)(14) 
 for i = 2:2:numberOfVertices
    constraints = [constraints, sum(X(i,i+1,:)) == sum(sum(X(i,3:2:numberOfVertices,:)))];
    constraints = [constraints, sum(X(i+1,i,:)) == sum(sum(X(i+1,2:2:numberOfVertices,:)))];
 end
 
-% minimiza v sujeito as restrições contidas na variável constraints
-% com gurobi
-%options = sdpsettings('solver','gurobi','verbose',1,'gurobi.Threads',4);
-% sem gurobi
-options = sdpsettings('verbose',1,'gurobi.Threads',4);
+% minimizes v subject to the constraints contained in the constraints variable
+% with gurobi
+options = sdpsettings('solver','gurobi','verbose',1,'gurobi.Threads',20);
+% without gurobi
+% options = sdpsettings('verbose',1,'gurobi.Threads',4);
+% cost func = v + /rou*mean(Tk)
 if h == 1
     solvesdp(constraints,0.999*max(v)+0.001*mean(v),options);
     %solvesdp(constraints,max(v),options);
