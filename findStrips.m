@@ -1,21 +1,19 @@
 function [lmin,lmax,V,laneDist] = findStrips(x,y,sidelap,imageWidth,imageLength)
-%
-%
 
-% Calcula o fecho convexo da região a ser invertigada
+% Calculate the Convex Hull of the region to be covered.
 k = convhull(x,y);
 
-% Plota a região e o fecho convexo.
-%plot(x(k),y(k),'k-')
+% Plot the region and the Convex Hull.
+% plot(x(k),y(k),'k-')
 plot([x; x(1)],[y; y(1)],'k+:')
 
-% A partir deste ponto, os únicos pontos que interessam são aqueles que
-% definem o fecho convexo.
+% From this point on, the only points that matter are those
+% that define the Convex Hull.
 x = x(k);
 y = y(k);
 
-% Rotaciona a região de interesse buscando para buscar o ângulo de
-% varredura que utiliza o menor número de linhas.
+% Rotating the ROI to find the sweep angle
+% that uses the least number of lines.
 areaWidth = max(x)-min(x);
 thetamin = 0;
 for i = 1:1:360
@@ -28,8 +26,8 @@ for i = 1:1:360
     end
 end 
 thetamin
-% Rotaciona a região para o ângulo escolhido na etapa anterior, para
-% facilitar os cálculos subsequentes.
+% Rotates the region to the angle chosen in the previous step
+% to facilitate subsequent calculations.
 R = [cos(thetamin) -sin(thetamin); sin(thetamin) cos(thetamin)];
 aux = R*[x y]';
 x = aux(1,:)';

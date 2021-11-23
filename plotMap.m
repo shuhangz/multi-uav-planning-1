@@ -1,13 +1,13 @@
-function plotMap()
+function plotMap(A, base, N, W, S, E)
 
 figure(1)
-% Selecione o mapa desejado
-A = imread('hangar.jpg');
-base = [897.5000  491.5000];
-N = -20.72613271;
-W = -43.81682358;
-S = -20.74471033;
-E = -43.77901375;
+% Select the desired map
+% A = imread('hangar.jpg');
+% base = [897.5000  491.5000];
+% N = -20.72613271;
+% W = -43.81682358;
+% S = -20.74471033;
+% E = -43.77901375;
 
 %imshow('ufmg.jpg');
 %base = 1.0e+03 * [1.8379    2.6473];

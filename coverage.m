@@ -16,7 +16,8 @@ uavFlightTime = 30; % Lk - Battery Duration
 uavSpeed = 45; % Vij - Flight Speed Const
 %flightAltitude = 240;
 %flightAltitude = 210;
-flightAltitude = 180; % H - Flighting Height
+% flightAltitude = 180; % H - Flighting Height
+flightAltitude = 50;
 
 % Heuristic 0: No but iteration
 %           1: Yes and no iteration
@@ -34,12 +35,25 @@ hfieldOfView = 74;
 vfieldOfView = 49;
 sidelap = .5; % s - image overlap
 
+% base = [897.5000  491.5000];
+% N = -20.72613271;
+% W = -43.81682358;
+% S = -20.74471033;
+% E = -43.77901375;
+
+A = imread('cuhk.png');
+base = [1595 1368];
+N = 22.4240;
+W = 114.2003;
+S = 22.4177;
+E = 114.2096;
+
 %% Parameters
 imageWidth = flightAltitude*2*tan(pi*(hfieldOfView/2)/180);
 imageLength = flightAltitude*2*tan(pi*(vfieldOfView/2)/180);
 
 %% Program
-plotMap;
+plotMap(A, base, N, W, S, E);
 % Select the boundary points of the area to be investigated. 
 % The base is the first chosen point and the other points 
 % (minimum of three in total) will be used to define the boundary.
@@ -114,7 +128,7 @@ end
 laneDist
 [t, t_fly] = time(waypoints,uavSpeed,uavSetupTime,O)
 
-plotUavPath(waypoints);
+plotUavPath(waypoints, A, base, N, W, S, E);
 %distance
 beep
 %plotForPaper;
