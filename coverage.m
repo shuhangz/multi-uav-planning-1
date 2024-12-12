@@ -1,6 +1,8 @@
 close all
 clear
 % clc
+addpath(genpath("C:\soft\YALMIP-master"));
+
 
 %% Configurations
 % UAV
@@ -10,8 +12,8 @@ global uavSetupTime;
 global uavFlightTime;
 O = 1; % O - Operators
 uavNumber = 2; % M - Total Number
-uavSetupTime = 4;  % ts - average of 8.2 minutes of setup
-uavFlightTime = 30; % Lk - Battery Duration
+uavSetupTime = 2;  % ts - average of 8.2 minutes of setup
+uavFlightTime = 5; % Lk - Battery Duration
 
 uavSpeed = 45; % Vij - Flight Speed Const
 %flightAltitude = 240;
@@ -63,7 +65,7 @@ plotMap(A, base, N, W, S, E);
 %x = [490 490 1510 1510]'; y = [500 -500 -500 500]';    % article
 %x = [490 490 1510]'; y = [500 -500 500]';              % article
 %x = [490 400 490 1000 1510 1400 1510 1000]'; y = [500 0 -500 -535 -500 0 500 575]'; %article
-%x = [-2000 -2000 2000]'; y = [-500 -1000 -500]';
+% x = [-2000 -2000 2000]'; y = [-500 -1000 -500]';
 %x = 1.0e+03 * [0.370 0.251 2]';y = [-278 217 -200]';
 %x = 1.0e+03 * [0.370 0.132 2]';y = [-278 722 -200]';
 %x = [170 -101 561 337]';y = [ -297 727 -249 689]';

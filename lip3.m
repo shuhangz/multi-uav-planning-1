@@ -114,18 +114,18 @@ end
 
 % minimizes v subject to the constraints contained in the constraints variable
 % with gurobi
-options = sdpsettings('solver','gurobi','verbose',1,'gurobi.Threads',20);
+% options = sdpsettings('solver','bnb','bnb.solver','fmincon');
 % without gurobi
-% options = sdpsettings('verbose',1,'gurobi.Threads',4);
+options = sdpsettings('verbose',1,'gurobi.Threads',4);
 % cost func = v + /rou*mean(Tk)
 if h == 1
-    solvesdp(constraints,0.999*max(v)+0.001*mean(v),options);
-    %solvesdp(constraints,max(v),options);
+    optimize(constraints,0.999*max(v)+0.001*mean(v),options);
+    %optimize(constraints,max(v),options);
 elseif h == 0
-    solvesdp(constraints,v,options);
+    optimize(constraints,v,options);
 end
 
-X = round(double(X));
+X = value(X);
 for k = 1:uavNumber
     sum1 = 0;
     for i = 1:numberOfVertices
